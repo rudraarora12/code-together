@@ -265,6 +265,21 @@ export function AuthProvider({ children }) {
       setUser(appUser);
       return appUser;
     } catch (err) {
+      if (err.code === 'auth/operation-not-allowed') {
+        const customErr = new Error('Google Sign-In is not enabled yet in your Firebase Console. Go to Authentication > Sign-in method, click Google, and click Enable.');
+        customErr.code = err.code;
+        throw customErr;
+      }
+      if (err.code === 'auth/popup-blocked') {
+        const customErr = new Error('Sign-in popup was blocked by the browser. Please allow popups for this site and try again.');
+        customErr.code = err.code;
+        throw customErr;
+      }
+      if (err.code === 'auth/unauthorized-domain') {
+        const customErr = new Error('This domain is not authorized in Firebase Console (Authentication > Settings > Authorized domains).');
+        customErr.code = err.code;
+        throw customErr;
+      }
       throw formatFirebaseAuthError(err);
     }
   };

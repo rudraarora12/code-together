@@ -50,6 +50,7 @@ if (isFirebaseConfigured) {
     app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
     auth = getAuth(app);
     googleProvider = new GoogleAuthProvider();
+    googleProvider.setCustomParameters({ prompt: 'select_account' });
     if (typeof window !== 'undefined') {
       console.log('[Firebase] Successfully connected to project:', firebaseConfig.projectId);
     }
