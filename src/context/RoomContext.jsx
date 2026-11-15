@@ -61,6 +61,7 @@ export function RoomProvider({ roomId = 'room-default', children }) {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   // 7. Editor Settings
+  const [simulateActivity, setSimulateActivity] = useState(false);
   const [editorSettings, setEditorSettings] = useState({
     fontSize: 14,
     tabSize: 2,
@@ -452,6 +453,26 @@ export function RoomProvider({ roomId = 'room-default', children }) {
     setEditorSettings(prev => ({ ...prev, ...newSettings }));
   }, []);
 
+  // Simulated activity for solo testing
+  useEffect(() => {
+    if (!simulateActivity) return;
+    const simCollab = {
+      id: 'sim-elena',
+      name: 'Elena Rostova (AI Partner)',
+      avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80',
+      color: '#cba6f7',
+      role: 'Collaborator',
+      isOwner: false,
+      activeFileId: activeFileId,
+      status: 'online'
+    };
+    setCollaborators(prev => [...prev.filter(p => p.id !== 'sim-elena'), simCollab]);
+
+    return () => {
+      setCollaborators(prev => prev.filter(p => p.id !== 'sim-elena'));
+    };
+  }, [simulateActivity, activeFileId]);
+
   return (
     <RoomContext.Provider
       value={{
@@ -512,7 +533,9 @@ export function RoomProvider({ roomId = 'room-default', children }) {
         isPreviewOpen,
         setIsPreviewOpen,
         editorSettings,
-        updateEditorSettings
+        updateEditorSettings,
+        simulateActivity,
+        setSimulateActivity
       }}
     >
       {children}

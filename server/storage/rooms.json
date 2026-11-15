@@ -17,5 +17,43 @@
     },
     "createdAt": "2026-11-14T23:56:45.601Z",
     "updatedAt": "2026-11-14T23:56:45.601Z"
+  },
+  "proj-2ne481": {
+    "id": "proj-2ne481",
+    "name": "Fullstack Collaborative IDE",
+    "projectType": "react-vite",
+    "projectTypeName": "React + Vite",
+    "primaryLanguage": "javascript",
+    "badgeColor": "#61dafb",
+    "isWeb": true,
+    "runCommand": "npm run dev",
+    "defaultPort": 5173,
+    "defaultFile": "index.html",
+    "totalFiles": 5,
+    "owner": {
+      "id": "lead-dev",
+      "name": "Lead Dev"
+    },
+    "createdAt": "2026-11-15T01:24:54.733Z",
+    "updatedAt": "2026-11-15T01:24:54.733Z"
+  },
+  "proj-nbu3mb": {
+    "id": "proj-nbu3mb",
+    "name": "Fullstack Collaborative IDE",
+    "projectType": "react-vite",
+    "projectTypeName": "React + Vite",
+    "primaryLanguage": "javascript",
+    "badgeColor": "#61dafb",
+    "isWeb": true,
+    "runCommand": "npm run dev",
+    "defaultPort": 5173,
+    "defaultFile": "index.html",
+    "totalFiles": 5,
+    "owner": {
+      "id": "lead-dev",
+      "name": "Lead Dev"
+    },
+    "createdAt": "2026-11-15T01:27:52.038Z",
+    "updatedAt": "2026-11-15T01:27:52.038Z"
   }
 }

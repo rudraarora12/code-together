@@ -4,7 +4,7 @@
  * Includes robust fallback emulation for standalone frontend testing with realistic stdout, stderr, and timings.
  */
 
-export async function executeCode({ code, language, input = '', backendUrl = 'http://localhost:5000' }) {
+export async function executeCode({ code, language, input = '', backendUrl = 'http://localhost:5001' }) {
   const startTime = performance.now();
 
   // Try backend runner first

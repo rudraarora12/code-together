@@ -239,6 +239,15 @@ export async function startProjectExecution(roomId, options = {}, callbacks = {}
 
     runtime.process = child;
 
+    // Execution safety timeout
+    const timeoutMs = options.timeout || 30 * 60 * 1000; // 30 minutes max
+    const timeoutTimer = setTimeout(() => {
+      if (runtime.process && runtime.status === 'running') {
+        appendLog(`[Sandbox] Execution safety timeout reached (${Math.round(timeoutMs / 1000)}s limit). Halting sandbox process.`, 'stderr');
+        stopProjectExecution(roomId);
+      }
+    }, timeoutMs);
+
     // Scan output for ports and web preview links
     const portRegex = /(?:localhost|127\.0\.0\.1|0\.0\.0\.0|port)[:\s]+(\d{3,5})/i;
 
@@ -284,6 +293,7 @@ export async function startProjectExecution(roomId, options = {}, callbacks = {}
     });
 
     child.on('close', (code) => {
+      clearTimeout(timeoutTimer);
       appendLog(`[Sandbox] Process exited with code ${code ?? 0}`, 'system');
       runtime.status = 'stopped';
       runtime.process = null;
@@ -292,6 +302,7 @@ export async function startProjectExecution(roomId, options = {}, callbacks = {}
     });
 
     child.on('error', (err) => {
+      clearTimeout(timeoutTimer);
       appendLog(`[Sandbox] Execution error: ${err.message}`, 'stderr');
       runtime.status = 'error';
       runtime.process = null;

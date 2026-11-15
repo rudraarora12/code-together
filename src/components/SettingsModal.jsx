@@ -21,7 +21,7 @@ export default function SettingsModal({ isOpen, onClose }) {
   } = useRoom();
 
   const [activeTab, setActiveTab] = useState('editor'); // 'editor' | 'sandbox' | 'shortcuts'
-  const [sandboxEndpoint, setSandboxEndpoint] = useState('http://localhost:5000');
+  const [sandboxEndpoint, setSandboxEndpoint] = useState('http://localhost:5001');
   const [isSaved, setIsSaved] = useState(false);
 
   const handleSaveSandbox = (e) => {
@@ -185,7 +185,7 @@ export default function SettingsModal({ isOpen, onClose }) {
                 type="text"
                 value={sandboxEndpoint}
                 onChange={(e) => setSandboxEndpoint(e.target.value)}
-                placeholder="http://localhost:5000"
+                placeholder="http://localhost:5001"
                 className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-white font-mono text-xs focus:outline-none focus:border-indigo-500"
               />
               <span className="text-[11px] text-gray-500">

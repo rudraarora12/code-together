@@ -10,7 +10,7 @@ class SocketService {
   /**
    * Connect to a backend Socket.IO server
    */
-  connect(url = 'http://localhost:5000') {
+  connect(url = 'http://localhost:5001') {
     if (this.socket) return this.socket;
 
     try {

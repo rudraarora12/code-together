@@ -13,7 +13,8 @@ import {
   CheckCircle2,
   FolderGit2,
   Share2,
-  UploadCloud
+  UploadCloud,
+  Globe
 } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import UploadRoomModal from '../components/UploadRoomModal';
@@ -34,20 +35,20 @@ export default function LandingPage() {
         {/* Pill Tag */}
         <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-indigo-950/50 border border-indigo-500/30 text-xs font-medium text-cyan-300 mb-8 backdrop-blur-md shadow-lg shadow-indigo-950/40">
           <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-          <span>Real-Time Collaborative Code Editor & Sandbox Runner</span>
+          <span>Full Project Collaborative Development Environment</span>
         </div>
 
         {/* Main Heading */}
         <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white max-w-5xl leading-[1.15]">
           Code Together in Real Time.{' '}
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-indigo-400 to-purple-400">
-            Google Docs + VS Code.
+            VS Code + Google Docs + Replit.
           </span>
         </h1>
 
         {/* Subtitle */}
         <p className="mt-6 text-lg sm:text-xl text-gray-400 max-w-3xl leading-relaxed">
-          Google Docs for programming, designed for hackathons and team coding. Upload your code file, copy the shareable link, invite your teammate, and edit together in real time.
+          Upload an entire project folder or ZIP archive, invite your teammates with a single link, edit all files simultaneously with live cursors, and run the project together in an isolated sandbox.
         </p>
 
         {/* CTA Buttons */}
@@ -57,7 +58,7 @@ export default function LandingPage() {
             className="px-7 py-3.5 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white font-semibold text-sm shadow-xl shadow-indigo-600/25 flex items-center space-x-2 transition-all hover:scale-105"
           >
             <UploadCloud className="w-4 h-4" />
-            <span>Start Collaborating (Upload Code)</span>
+            <span>Upload Project Folder / ZIP</span>
             <ArrowRight className="w-4 h-4" />
           </button>
           <Link
@@ -76,19 +77,19 @@ export default function LandingPage() {
               <div className="w-3 h-3 rounded-full bg-rose-500/80"></div>
               <div className="w-3 h-3 rounded-full bg-amber-500/80"></div>
               <div className="w-3 h-3 rounded-full bg-emerald-500/80"></div>
-              <span className="text-xs font-mono text-gray-400 ml-2">codetogether — main.js</span>
+              <span className="text-xs font-mono text-gray-400 ml-2">CodeTogether — Full Project Workspace</span>
             </div>
 
             <div className="flex items-center space-x-3 text-xs">
               <span className="flex items-center gap-1.5 text-emerald-400 font-mono text-[11px]">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                3 Collaborators Active
+                Live Yjs CRDT Synchronization
               </span>
               <button
-                onClick={() => navigate('/room/room-react-dashboard')}
-                className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-semibold rounded"
+                onClick={() => setIsUploadModalOpen(true)}
+                className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-semibold rounded transition-colors"
               >
-                Join Room
+                Create Room
               </button>
             </div>
           </div>
@@ -97,19 +98,22 @@ export default function LandingPage() {
           <div className="grid grid-cols-12 text-left font-mono text-xs">
             {/* Sidebar preview */}
             <div className="col-span-3 bg-[#0d0f1b] border-r border-gray-800/80 p-3 hidden md:block">
-              <div className="text-[10px] text-gray-500 uppercase font-bold tracking-wider mb-2">Workspace Files</div>
+              <div className="text-[10px] text-gray-500 uppercase font-bold tracking-wider mb-2">Project Files</div>
               <div className="space-y-1.5 text-gray-400 text-xs">
                 <div className="flex items-center space-x-2 text-cyan-300 bg-indigo-950/30 px-2 py-1 rounded border-l-2 border-cyan-400">
-                  <span>📄 index.js</span>
+                  <span>📄 src/App.jsx</span>
                 </div>
                 <div className="flex items-center space-x-2 px-2 py-1 hover:text-white">
-                  <span>📄 math.py</span>
+                  <span>📄 src/main.jsx</span>
                 </div>
                 <div className="flex items-center space-x-2 px-2 py-1 hover:text-white">
-                  <span>📁 src/</span>
+                  <span>📁 src/components/</span>
                 </div>
                 <div className="flex items-center space-x-2 px-2 py-1 hover:text-white">
-                  <span>📄 README.md</span>
+                  <span>📄 package.json</span>
+                </div>
+                <div className="flex items-center space-x-2 px-2 py-1 hover:text-white">
+                  <span>📄 vite.config.js</span>
                 </div>
               </div>
             </div>
@@ -124,22 +128,22 @@ export default function LandingPage() {
                 Marcus Vance
               </div>
 
-              <div className="text-gray-500">// Real-time collaborative document synchronization</div>
+              <div className="text-gray-500">// Real-time multi-file collaborative development</div>
               <div className="text-purple-400">import <span className="text-white">&#123; createEngine &#125;</span> from <span className="text-emerald-400">'@codetogether/runtime'</span>;</div>
-              <div className="text-cyan-400">const <span className="text-yellow-300">room</span> = await createEngine(<span className="text-emerald-400">'room-ai-algorithms'</span>);</div>
+              <div className="text-cyan-400">const <span className="text-yellow-300">workspace</span> = await createEngine(<span className="text-emerald-400">'hackathon-workspace'</span>);</div>
               <div className="text-gray-300">
-                room.on(<span className="text-emerald-400">'cursor:move'</span>, (user) =&gt; &#123;
+                workspace.on(<span className="text-emerald-400">'cursor:move'</span>, (user) =&gt; &#123;
               </div>
               <div className="pl-6 text-gray-400">
-                console.log(<span className="text-emerald-400">&#96;Collaborator &#36;&#123;user.name&#125; edited line &#36;&#123;user.line&#125;&#96;</span>);
+                console.log(<span className="text-emerald-400">&#96;Collaborator &#36;&#123;user.name&#125; editing &#36;&#123;user.file&#125;&#96;</span>);
               </div>
               <div className="text-gray-300">&#125;);</div>
 
               {/* Console preview bottom bar */}
               <div className="mt-6 pt-3 border-t border-gray-800 bg-[#0d0f1b]/80 rounded p-2.5 text-xs text-gray-300">
-                <div className="text-emerald-400 font-semibold mb-1">=== Execution Output (0.12s) ===</div>
-                <div className="text-gray-400">F(0) = 0 | F(1) = 1 | F(2) = 1 | F(3) = 2 | F(4) = 3</div>
-                <div className="text-gray-500 text-[10px]">Process exited with status 0</div>
+                <div className="text-emerald-400 font-semibold mb-1">=== Project Execution (Vite Dev Server) ===</div>
+                <div className="text-gray-400">Local: http://localhost:5174/ | Server active &amp; ready</div>
+                <div className="text-gray-500 text-[10px]">Isolated Sandbox Runner • Non-root container</div>
               </div>
             </div>
           </div>
@@ -149,30 +153,30 @@ export default function LandingPage() {
       {/* Feature Grid */}
       <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="text-center mb-16">
-          <h2 className="text-xs uppercase font-mono tracking-widest text-cyan-400 mb-2">Engineered For Developers</h2>
-          <h3 className="text-3xl sm:text-4xl font-bold text-white">Everything you need for live collaboration</h3>
+          <h2 className="text-xs uppercase font-mono tracking-widest text-cyan-400 mb-2">Engineered For Teams</h2>
+          <h3 className="text-3xl sm:text-4xl font-bold text-white">Full Development Environment in the Browser</h3>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Feature 1 */}
           <div className="p-6 rounded-2xl bg-[#121422] border border-gray-800 hover:border-gray-700 transition-all hover:-translate-y-1">
             <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 mb-4">
-              <Users className="w-5 h-5" />
+              <UploadCloud className="w-5 h-5" />
             </div>
-            <h4 className="text-lg font-semibold text-white mb-2">Multi-User Cursors</h4>
+            <h4 className="text-lg font-semibold text-white mb-2">Full Project Folder Upload</h4>
             <p className="text-sm text-gray-400 leading-relaxed">
-              Every collaborator receives a unique cursor color and floating name tag. Watch teammates type, select text, and navigate files in real time.
+              Upload an entire folder or ZIP archive. CodeTogether preserves directory structures, auto-detects project frameworks, and excludes node_modules and secrets.
             </p>
           </div>
 
           {/* Feature 2 */}
           <div className="p-6 rounded-2xl bg-[#121422] border border-gray-800 hover:border-gray-700 transition-all hover:-translate-y-1">
             <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 mb-4">
-              <Code2 className="w-5 h-5" />
+              <Users className="w-5 h-5" />
             </div>
-            <h4 className="text-lg font-semibold text-white mb-2">Monaco Code Editor</h4>
+            <h4 className="text-lg font-semibold text-white mb-2">Concurrent Multi-File Editing</h4>
             <p className="text-sm text-gray-400 leading-relaxed">
-              Full VS Code editing experience: syntax highlighting, brackets colorization, minimap, formatting, and multi-file tabs for JS, TS, Python, C++, and Java.
+              Multiple users can edit the same file simultaneously or different files at the same time with conflict-free Yjs CRDT synchronization and live colored cursors.
             </p>
           </div>
 
@@ -181,31 +185,31 @@ export default function LandingPage() {
             <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-4">
               <Terminal className="w-5 h-5" />
             </div>
-            <h4 className="text-lg font-semibold text-white mb-2">Isolated Sandbox Runner</h4>
+            <h4 className="text-lg font-semibold text-white mb-2">Run the Entire Project</h4>
             <p className="text-sm text-gray-400 leading-relaxed">
-              Execute code directly in the browser with realistic stdout, stderr, execution duration metrics, and container memory stats.
+              Run React, Node, Python, Java, or C++ projects in an isolated sandbox. Shared terminal streams stdout/stderr live to all collaborators simultaneously.
             </p>
           </div>
 
           {/* Feature 4 */}
           <div className="p-6 rounded-2xl bg-[#121422] border border-gray-800 hover:border-gray-700 transition-all hover:-translate-y-1">
             <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 mb-4">
-              <FolderGit2 className="w-5 h-5" />
+              <Globe className="w-5 h-5" />
             </div>
-            <h4 className="text-lg font-semibold text-white mb-2">Shared Project Explorer</h4>
+            <h4 className="text-lg font-semibold text-white mb-2">Live Application Web Preview</h4>
             <p className="text-sm text-gray-400 leading-relaxed">
-              Create, rename, and delete project files and organize into folders. File tree changes sync immediately with all room participants.
+              When web applications run, preview them live in the browser with responsive Desktop, Tablet, and Mobile views, plus address bar navigation.
             </p>
           </div>
 
           {/* Feature 5 */}
           <div className="p-6 rounded-2xl bg-[#121422] border border-gray-800 hover:border-gray-700 transition-all hover:-translate-y-1">
             <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 mb-4">
-              <Share2 className="w-5 h-5" />
+              <FolderGit2 className="w-5 h-5" />
             </div>
-            <h4 className="text-lg font-semibold text-white mb-2">Instant Room Sharing</h4>
+            <h4 className="text-lg font-semibold text-white mb-2">VS Code Project Explorer</h4>
             <p className="text-sm text-gray-400 leading-relaxed">
-              Generate invite links in one click, set permissions (Can Edit vs Can View), and share Room IDs for instant pairing.
+              Complete project tree with expand/collapse folders, create/rename/delete operations, teammate file presence indicators, and ZIP downloads.
             </p>
           </div>
 
@@ -214,9 +218,9 @@ export default function LandingPage() {
             <div className="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 mb-4">
               <ShieldCheck className="w-5 h-5" />
             </div>
-            <h4 className="text-lg font-semibold text-white mb-2">Production-Ready Architecture</h4>
+            <h4 className="text-lg font-semibold text-white mb-2">Secure Sandbox Architecture</h4>
             <p className="text-sm text-gray-400 leading-relaxed">
-              Built on Yjs CRDTs and modular Socket.IO services, ready to bridge directly to any Node.js + Express backend or Docker worker pool.
+              Strict isolation: stripped host environment secrets, process tree killing (`tree-kill`), output buffer protection, and room authorization checks.
             </p>
           </div>
         </div>
@@ -232,25 +236,25 @@ export default function LandingPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="p-6 bg-[#10121e] rounded-2xl border border-gray-800 relative">
             <div className="text-4xl font-mono font-bold text-gray-700 mb-4">01</div>
-            <h4 className="text-lg font-bold text-white mb-2">Upload Code File</h4>
+            <h4 className="text-lg font-bold text-white mb-2">Upload Project Folder</h4>
             <p className="text-sm text-gray-400">
-              Drag & drop your code file (.py, .js, .cpp, .java, etc.). The editor automatically detects the language and creates your room.
+              Select your project directory or upload a ZIP file. Languages and configurations are detected automatically.
             </p>
           </div>
 
           <div className="p-6 bg-[#10121e] rounded-2xl border border-gray-800 relative">
             <div className="text-4xl font-mono font-bold text-gray-700 mb-4">02</div>
-            <h4 className="text-lg font-bold text-white mb-2">Copy & Invite</h4>
+            <h4 className="text-lg font-bold text-white mb-2">Invite Your Teammates</h4>
             <p className="text-sm text-gray-400">
-              Click Invite Teammates to copy your unique shareable room URL. Send it to your hackathon partner.
+              Click Invite Teammates to copy your unique shareable room URL. All teammates enter the exact same collaborative workspace.
             </p>
           </div>
 
           <div className="p-6 bg-[#10121e] rounded-2xl border border-gray-800 relative">
             <div className="text-4xl font-mono font-bold text-gray-700 mb-4">03</div>
-            <h4 className="text-lg font-bold text-white mb-2">Edit in Real Time</h4>
+            <h4 className="text-lg font-bold text-white mb-2">Collaborate &amp; Run</h4>
             <p className="text-sm text-gray-400">
-              Both teammates edit simultaneously with live colored cursors, conflict-free Yjs synchronization, and an integrated sandbox runner.
+              Navigate the file tree, edit simultaneously with live colored cursors, and run the project together in an isolated sandbox.
             </p>
           </div>
         </div>
@@ -270,7 +274,7 @@ export default function LandingPage() {
             <span className="font-semibold text-gray-300">CodeTogether Collaborative Platform</span>
           </div>
           <div>
-            Built with React, Monaco Editor, Tailwind CSS &amp; Yjs.
+            Built with React, Monaco Editor, Tailwind CSS, Yjs &amp; Socket.IO.
           </div>
         </div>
       </footer>
