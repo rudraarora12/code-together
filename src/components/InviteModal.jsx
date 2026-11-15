@@ -179,6 +179,17 @@ export default function InviteModal({ isOpen, onClose, roomId, roomName, collabo
                 </p>
               </div>
             )}
+
+            <div className="p-2.5 bg-gray-900/60 border border-gray-800 rounded-xl text-[11px] text-gray-400 space-y-1">
+              <span className="text-amber-400 font-semibold flex items-center gap-1">
+                💡 Having trouble connecting on Campus/Hackathon Wi-Fi?
+              </span>
+              <p className="text-gray-300 leading-relaxed">
+                Campus and event Wi-Fis often enable <em>AP Isolation</em> to block direct laptop connections. 
+                <br />
+                <strong>Fast Fix:</strong> Connect teammates to a <strong>Phone Mobile Hotspot</strong>, or switch to the <strong>Remote / Internet</strong> tab to generate a public link!
+              </p>
+            </div>
           </div>
         )}
 
@@ -229,22 +240,22 @@ export default function InviteModal({ isOpen, onClose, roomId, roomName, collabo
             </div>
 
             <div className="p-2.5 bg-gray-950 border border-gray-800 rounded-xl space-y-1 font-mono text-[11px]">
-              <span className="text-gray-500">Run in your terminal:</span>
+              <span className="text-gray-400 font-sans">Run this single command in a new terminal:</span>
               <div className="flex items-center justify-between text-cyan-300 bg-gray-900/80 px-2 py-1.5 rounded">
-                <span>npx localtunnel --port 5173</span>
+                <span>npm run tunnel</span>
                 <button
                   onClick={() => {
-                    navigator.clipboard.writeText('npx localtunnel --port 5173');
+                    navigator.clipboard.writeText('npm run tunnel');
                     showToast('Command copied to clipboard!');
                   }}
-                  className="hover:text-white p-0.5"
+                  className="hover:text-white p-0.5 text-gray-400"
                   title="Copy command"
                 >
                   <Copy className="w-3 h-3" />
                 </button>
               </div>
-              <p className="text-[10px] text-gray-500 pt-1">
-                Then share the generated public URL with your remote teammates!
+              <p className="text-[10px] text-emerald-400 font-sans pt-1">
+                ✓ Bypasses Wi-Fi restrictions and firewalls automatically. Teammates anywhere can join!
               </p>
             </div>
           </div>

@@ -7,16 +7,10 @@
 export function getBackendUrl() {
   if (typeof window === 'undefined') return 'http://localhost:5001';
 
-  const { protocol, hostname, port } = window.location;
-
-  // If accessing through a custom public tunnel or proxy without port in URL
-  if (!port || port === '80' || port === '443') {
-    return `${protocol}//${hostname}:5001`;
-  }
-
-  // If running on Vite dev server (port 5173) or any client port,
-  // target the backend on port 5001 with the exact same hostname (e.g. 10.50.3.163 or localhost)
-  return `${protocol}//${hostname}:5001`;
+  // Use current origin so all API requests and Socket.io WebSockets
+  // seamlessly route through Vite's built-in /api and /socket.io proxy.
+  // This works identically on localhost, Wi-Fi LAN IP, hotspot, or public tunnels!
+  return window.location.origin;
 }
 
 export function getApiBaseUrl() {
