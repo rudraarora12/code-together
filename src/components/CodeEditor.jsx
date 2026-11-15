@@ -10,6 +10,7 @@ import { FileCode, Sparkles, Plus } from 'lucide-react';
 
 export default function CodeEditor() {
   const { 
+    roomId,
     activeFileId,
     activeFile,
     openTabs,
@@ -105,11 +106,14 @@ export default function CodeEditor() {
       // If document is empty in memory, fetch initial content from backend
       if (yText.length === 0) {
         try {
-          const res = await fetch(`${getBackendUrl()}/api/rooms/${sessionRef.current.socket?.io?.opts?.query?.roomId || ''}/file-content?path=${encodeURIComponent(activeFileId)}`);
-          if (res.ok) {
-            const data = await res.json();
-            if (isSubscribed && yText.length === 0 && data.content) {
-              yText.insert(0, data.content);
+          const effectiveRoomId = roomId || sessionRef.current?.roomId;
+          if (effectiveRoomId) {
+            const res = await fetch(`${getBackendUrl()}/api/rooms/${encodeURIComponent(effectiveRoomId)}/file-content?path=${encodeURIComponent(activeFileId)}`);
+            if (res.ok) {
+              const data = await res.json();
+              if (isSubscribed && yText.length === 0 && data.content) {
+                yText.insert(0, data.content);
+              }
             }
           }
         } catch {

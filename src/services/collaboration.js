@@ -34,10 +34,11 @@ export function createCollaborationSession(roomId, user, options = {}) {
 
   // Connect Socket.IO
   const socket = io(backendUrl, {
-    transports: ['websocket', 'polling'],
-    timeout: 5000,
+    query: { roomId, userId: user?.id, userName: user?.name },
+    transports: ['polling', 'websocket'],
+    timeout: 7000,
     reconnection: true,
-    reconnectionAttempts: 10,
+    reconnectionAttempts: 15,
     reconnectionDelay: 1000
   });
 
@@ -326,6 +327,7 @@ export function createCollaborationSession(roomId, user, options = {}) {
   }
 
   return {
+    roomId,
     socket,
     getFileDoc,
     switchActiveFile,
