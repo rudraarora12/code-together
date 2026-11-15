@@ -1,0 +1,21 @@
+{
+  "proj-sxkl4v": {
+    "id": "proj-sxkl4v",
+    "name": "Fullstack Collaborative IDE",
+    "projectType": "react-vite",
+    "projectTypeName": "React + Vite",
+    "primaryLanguage": "javascript",
+    "badgeColor": "#61dafb",
+    "isWeb": true,
+    "runCommand": "npm run dev",
+    "defaultPort": 5173,
+    "defaultFile": "index.html",
+    "totalFiles": 5,
+    "owner": {
+      "id": "lead-dev",
+      "name": "Lead Dev"
+    },
+    "createdAt": "2026-11-14T23:56:45.601Z",
+    "updatedAt": "2026-11-14T23:56:45.601Z"
+  }
+}
