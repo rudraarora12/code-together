@@ -6,6 +6,7 @@ import * as Y from 'yjs';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
+import { execSync } from 'child_process';
 import { fileURLToPath } from 'url';
 
 import {
@@ -756,20 +757,68 @@ io.on('connection', (socket) => {
 
 const PORT = process.env.PORT || 5001;
 
+function freePortIfOccupied(port) {
+  try {
+    if (process.platform === 'win32') {
+      const output = execSync(`netstat -ano | findstr :${port}`, { stdio: ['pipe', 'pipe', 'ignore'] }).toString();
+      const lines = output.split('\n');
+      const pids = new Set();
+      for (const line of lines) {
+        if (/LISTENING|Listen/i.test(line)) {
+          const parts = line.trim().split(/\s+/);
+          const pid = parts[parts.length - 1];
+          if (pid && pid !== '0' && parseInt(pid, 10) !== process.pid) {
+            pids.add(pid);
+          }
+        }
+      }
+      for (const pid of pids) {
+        try {
+          console.log(`[Auto-Recovery] Terminating stale process (PID ${pid}) on port ${port}...`);
+          execSync(`taskkill /F /PID ${pid}`, { stdio: 'ignore' });
+        } catch (_) {}
+      }
+      return pids.size > 0;
+    } else {
+      execSync(`fuser -k ${port}/tcp`, { stdio: 'ignore' });
+      return true;
+    }
+  } catch (_) {
+    return false;
+  }
+}
+
+let retryCount = 0;
+
+function startListening() {
+  server.listen(PORT, '0.0.0.0', () => {
+    console.log(`===============================================`);
+    console.log(`CodeTogether Full Project Collaboration Engine`);
+    console.log(`Server listening on port ${PORT}`);
+    console.log(`Storage root: ${STORAGE_DIR}`);
+    console.log(`===============================================`);
+  });
+}
+
 server.on('error', (err) => {
   if (err.code === 'EADDRINUSE') {
-    console.log(`[Notice] Port ${PORT} already in use. Ensure prior instance is stopped.`);
+    if (retryCount === 0) {
+      retryCount++;
+      console.log(`[Auto-Recovery] Port ${PORT} is occupied. Automatically clearing stale process...`);
+      freePortIfOccupied(PORT);
+      setTimeout(() => {
+        try { server.close(); } catch (_) {}
+        console.log(`[Auto-Recovery] Retrying bind on port ${PORT}...`);
+        startListening();
+      }, 700);
+    } else {
+      console.log(`[Notice] Port ${PORT} already in use. Ensure prior instance is stopped.`);
+    }
   } else {
     console.error('[Server Error]', err);
   }
 });
 
-server.listen(PORT, '0.0.0.0', () => {
-  console.log(`===============================================`);
-  console.log(`CodeTogether Full Project Collaboration Engine`);
-  console.log(`Server listening on port ${PORT}`);
-  console.log(`Storage root: ${STORAGE_DIR}`);
-  console.log(`===============================================`);
-});
+startListening();
 
 export { app, server, io };

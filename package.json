@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "server": "node server/server.js",
+    "free-ports": "node -e \"import('child_process').then(({execSync})=>{[5001,5173].forEach(p=>{try{const out=execSync('netstat -ano | findstr :'+p).toString(); out.split(/\\r?\\n/).forEach(l=>{if(/LISTENING/i.test(l)){const pid=l.trim().split(/\\s+/).pop(); if(pid&&pid!=='0'&&pid!==process.pid.toString()) execSync('taskkill /F /PID '+pid);}}); }catch(e){}}); console.log('Ports 5001 & 5173 checked and freed.');});\"",
     "fullstack": "concurrently -n \"SERVER,CLIENT\" -c \"magenta,cyan\" \"node server/server.js\" \"vite\"",
     "build": "vite build",
     "preview": "vite preview",
