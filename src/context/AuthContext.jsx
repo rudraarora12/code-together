@@ -45,26 +45,40 @@ export const DEMO_USERS = [
 
 function formatFirebaseAuthError(err) {
   const code = err.code || '';
+  const rawMessage = (err.message || '').replace(/^Firebase:\s*/, '');
+  const error = new Error();
+  error.code = code;
+
   switch (code) {
     case 'auth/invalid-credential':
     case 'auth/wrong-password':
     case 'auth/user-not-found':
-      return new Error('Invalid email or password. Please verify your credentials.');
+      error.message = 'Invalid email or password. Please verify your credentials.';
+      break;
     case 'auth/email-already-in-use':
-      return new Error('This email address is already in use. Please sign in instead.');
+      error.message = 'This email address is already in use. Please sign in instead.';
+      break;
     case 'auth/weak-password':
-      return new Error('Password must be at least 6 characters long.');
+      error.message = 'Password must be at least 6 characters long.';
+      break;
     case 'auth/invalid-email':
-      return new Error('Please enter a valid email address.');
+      error.message = 'Please enter a valid email address.';
     case 'auth/too-many-requests':
-      return new Error('Too many failed attempts. Please try again in a few moments.');
+      error.message = 'Too many failed attempts. Please try again in a few moments.';
     case 'auth/popup-closed-by-user':
-      return new Error('Google sign-in popup was closed before finishing.');
+      error.message = 'Google sign-in popup was closed before finishing.';
+      break;
+    case 'auth/network-request-failed':
+      error.message = 'Network error connecting to Firebase. Please check your internet connection.';
+      break;
     case 'auth/operation-not-allowed':
-      return new Error('Email/Password provider is not yet enabled in Firebase Console (Authentication > Sign-in method).');
+      error.message = `[${code}] ${rawMessage || 'The requested sign-in operation is not permitted.'}`;
+      break;
     default:
-      return new Error(err.message || 'Authentication failed. Please try again.');
+      error.message = code ? `[${code}] ${rawMessage || 'Authentication failed.'}` : (rawMessage || 'Authentication failed. Please try again.');
+      break;
   }
+  return error;
 }
 
 export function AuthProvider({ children }) {

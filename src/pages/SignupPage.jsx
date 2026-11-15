@@ -201,14 +201,7 @@ export default function SignupPage() {
           {error && (
             <div className="p-3.5 bg-red-950/50 border border-red-800/60 rounded-xl flex items-start gap-3 text-xs text-red-300 animate-in fade-in duration-200">
               <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
-              <div className="leading-relaxed space-y-1">
-                <p className="font-medium text-red-200">{error}</p>
-                {error.includes('Email/Password provider') && (
-                  <p className="text-[11px] text-red-400/90">
-                    💡 Tip: Go to Firebase Console → Authentication → Sign-in method, click "Email/Password" and enable it.
-                  </p>
-                )}
-              </div>
+              <p className="leading-relaxed font-medium text-red-200">{error}</p>
             </div>
           )}
 
