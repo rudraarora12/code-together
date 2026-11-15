@@ -5,6 +5,7 @@ import { useRoom } from '../context/RoomContext';
 import { useAuth } from '../context/AuthContext';
 import { detectLanguageFromFilename } from '../utils/languageDetector';
 import { showToast } from './Toast';
+import { getBackendUrl } from '../services/config';
 import { FileCode, Sparkles, Plus } from 'lucide-react';
 
 export default function CodeEditor() {
@@ -104,7 +105,7 @@ export default function CodeEditor() {
       // If document is empty in memory, fetch initial content from backend
       if (yText.length === 0) {
         try {
-          const res = await fetch(`http://localhost:5001/api/rooms/${sessionRef.current.socket?.io?.opts?.query?.roomId || ''}/file-content?path=${encodeURIComponent(activeFileId)}`);
+          const res = await fetch(`${getBackendUrl()}/api/rooms/${sessionRef.current.socket?.io?.opts?.query?.roomId || ''}/file-content?path=${encodeURIComponent(activeFileId)}`);
           if (res.ok) {
             const data = await res.json();
             if (isSubscribed && yText.length === 0 && data.content) {

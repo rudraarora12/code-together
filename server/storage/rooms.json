@@ -55,5 +55,64 @@
     },
     "createdAt": "2026-11-15T01:27:52.038Z",
     "updatedAt": "2026-11-15T01:27:52.038Z"
+  },
+  "proj-2yusay": {
+    "id": "proj-2yusay",
+    "name": "backend",
+    "projectType": "nodejs",
+    "projectTypeName": "Node.js Application",
+    "primaryLanguage": "javascript",
+    "badgeColor": "#68a063",
+    "isWeb": true,
+    "runCommand": "npm start",
+    "defaultPort": 3000,
+    "defaultFile": "server.js",
+    "totalFiles": 19,
+    "owner": {
+      "id": "user-1",
+      "name": "Alex Rivera",
+      "avatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"
+    },
+    "createdAt": "2026-11-15T01:33:16.961Z",
+    "updatedAt": "2026-11-15T01:33:16.961Z"
+  },
+  "proj-xsy5sc": {
+    "id": "proj-xsy5sc",
+    "name": "backend-project-main",
+    "projectType": "generic",
+    "projectTypeName": "Standard Project",
+    "primaryLanguage": "plaintext",
+    "badgeColor": "#89b4fa",
+    "isWeb": false,
+    "runCommand": "",
+    "defaultPort": 3000,
+    "defaultFile": "backend-project-main/backend/server.js",
+    "totalFiles": 106,
+    "owner": {
+      "id": "user-1",
+      "name": "Alex Rivera",
+      "avatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"
+    },
+    "createdAt": "2026-11-15T06:59:11.995Z",
+    "updatedAt": "2026-11-15T06:59:11.995Z"
+  },
+  "proj-i15rc0": {
+    "id": "proj-i15rc0",
+    "name": "Fullstack Collaborative IDE",
+    "projectType": "react-vite",
+    "projectTypeName": "React + Vite",
+    "primaryLanguage": "javascript",
+    "badgeColor": "#61dafb",
+    "isWeb": true,
+    "runCommand": "npm run dev",
+    "defaultPort": 5173,
+    "defaultFile": "index.html",
+    "totalFiles": 5,
+    "owner": {
+      "id": "lead-dev",
+      "name": "Lead Dev"
+    },
+    "createdAt": "2026-11-15T07:06:11.863Z",
+    "updatedAt": "2026-11-15T07:06:11.863Z"
   }
 }

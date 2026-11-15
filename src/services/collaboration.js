@@ -1,5 +1,6 @@
 import * as Y from 'yjs';
 import { io } from 'socket.io-client';
+import { getBackendUrl } from './config';
 
 export const COLLABORATOR_COLORS = [
   { hex: '#89b4fa', name: 'Sapphire Blue', bg: 'bg-[#89b4fa]/20', border: 'border-[#89b4fa]' },
@@ -19,7 +20,7 @@ export function getRandomColor(seed = 0) {
  * Initializes multi-file real-time collaboration session using Yjs and Socket.IO.
  */
 export function createCollaborationSession(roomId, user, options = {}) {
-  const backendUrl = options.backendUrl || 'http://localhost:5001';
+  const backendUrl = options.backendUrl || getBackendUrl();
   const userColor = user?.color || getRandomColor(Math.floor(Math.random() * COLLABORATOR_COLORS.length)).hex;
 
   // Multi-doc map: fileId -> { ydoc, yText, isSynced }

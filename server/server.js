@@ -5,6 +5,7 @@ import cors from 'cors';
 import * as Y from 'yjs';
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 import { fileURLToPath } from 'url';
 
 import {
@@ -150,6 +151,25 @@ app.get('/health', (req, res) => {
     uptime: process.uptime(),
     activeRooms: roomsStore.size,
     timestamp: new Date().toISOString()
+  });
+});
+
+// Network discovery for hackathon teammate invitations
+app.get('/api/network-info', (req, res) => {
+  const nets = os.networkInterfaces();
+  const ips = [];
+  for (const name of Object.keys(nets)) {
+    for (const net of nets[name]) {
+      if (net.family === 'IPv4' && !net.internal) {
+        ips.push({ interface: name, address: net.address });
+      }
+    }
+  }
+  res.json({
+    localIp: ips[0]?.address || 'localhost',
+    allIps: ips,
+    backendPort: PORT,
+    clientPort: 5173
   });
 });
 

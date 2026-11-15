@@ -29,6 +29,7 @@ import {
   DEFAULT_IGNORED_DIRS 
 } from '../services/projectUpload';
 import { formatFileSize } from '../utils/languageDetector';
+import { getBackendUrl } from '../services/config';
 import { useAuth } from '../context/AuthContext';
 import { showToast } from './Toast';
 
@@ -190,7 +191,7 @@ export default function UploadRoomModal({ isOpen, onClose }) {
         }
       };
 
-      const res = await fetch('http://localhost:5001/api/rooms/project', {
+      const res = await fetch(`${getBackendUrl()}/api/rooms/project`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)

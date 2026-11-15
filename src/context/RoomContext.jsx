@@ -4,6 +4,7 @@ import { createCollaborationSession, COLLABORATOR_COLORS } from '../services/col
 import { buildFileTree } from '../services/projectUpload';
 import { detectLanguageFromFilename } from '../utils/languageDetector';
 import { showToast } from '../components/Toast';
+import { getBackendUrl } from '../services/config';
 
 const RoomContext = createContext(null);
 
@@ -116,7 +117,7 @@ export function RoomProvider({ roomId = 'room-default', children }) {
   // -------------------------------------------------------------
   const fetchRoomData = useCallback(async () => {
     try {
-      const res = await fetch(`http://localhost:5001/api/rooms/${roomId}`);
+      const res = await fetch(`${getBackendUrl()}/api/rooms/${roomId}`);
       if (!res.ok) throw new Error('Room not found');
       const data = await res.json();
 
@@ -284,7 +285,7 @@ export function RoomProvider({ roomId = 'room-default', children }) {
   // -------------------------------------------------------------
   const createFile = useCallback(async (filePath, initialContent = '') => {
     try {
-      const res = await fetch(`http://localhost:5001/api/rooms/${roomId}/files`, {
+      const res = await fetch(`${getBackendUrl()}/api/rooms/${roomId}/files`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ path: filePath, content: initialContent })
@@ -304,7 +305,7 @@ export function RoomProvider({ roomId = 'room-default', children }) {
 
   const createFolder = useCallback(async (folderPath) => {
     try {
-      const res = await fetch(`http://localhost:5001/api/rooms/${roomId}/folders`, {
+      const res = await fetch(`${getBackendUrl()}/api/rooms/${roomId}/folders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ path: folderPath })
@@ -323,7 +324,7 @@ export function RoomProvider({ roomId = 'room-default', children }) {
 
   const renameFile = useCallback(async (oldPath, newPath) => {
     try {
-      const res = await fetch(`http://localhost:5001/api/rooms/${roomId}/files/rename`, {
+      const res = await fetch(`${getBackendUrl()}/api/rooms/${roomId}/files/rename`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ oldPath, newPath })
@@ -346,7 +347,7 @@ export function RoomProvider({ roomId = 'room-default', children }) {
 
   const deleteFile = useCallback(async (filePath) => {
     try {
-      const res = await fetch(`http://localhost:5001/api/rooms/${roomId}/files?path=${encodeURIComponent(filePath)}`, {
+      const res = await fetch(`${getBackendUrl()}/api/rooms/${roomId}/files?path=${encodeURIComponent(filePath)}`, {
         method: 'DELETE'
       });
       if (!res.ok) {
@@ -363,7 +364,7 @@ export function RoomProvider({ roomId = 'room-default', children }) {
   }, [roomId, closeTab]);
 
   const downloadZip = useCallback(() => {
-    const downloadUrl = `http://localhost:5001/api/rooms/${roomId}/download`;
+    const downloadUrl = `${getBackendUrl()}/api/rooms/${roomId}/download`;
     const a = document.createElement('a');
     a.href = downloadUrl;
     a.download = `${roomName.replace(/\s+/g, '_')}.zip`;
@@ -383,7 +384,7 @@ export function RoomProvider({ roomId = 'room-default', children }) {
     setRunStatus('building');
 
     try {
-      const res = await fetch(`http://localhost:5001/api/rooms/${roomId}/run`, {
+      const res = await fetch(`${getBackendUrl()}/api/rooms/${roomId}/run`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ command: cmd })
@@ -399,7 +400,7 @@ export function RoomProvider({ roomId = 'room-default', children }) {
 
   const stopProject = useCallback(async () => {
     try {
-      const res = await fetch(`http://localhost:5001/api/rooms/${roomId}/stop`, {
+      const res = await fetch(`${getBackendUrl()}/api/rooms/${roomId}/stop`, {
         method: 'POST'
       });
       if (!res.ok) throw new Error('Failed to stop project');
@@ -417,7 +418,7 @@ export function RoomProvider({ roomId = 'room-default', children }) {
     setRunStatus('building');
 
     try {
-      const res = await fetch(`http://localhost:5001/api/rooms/${roomId}/restart`, {
+      const res = await fetch(`${getBackendUrl()}/api/rooms/${roomId}/restart`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ command: cmd })
