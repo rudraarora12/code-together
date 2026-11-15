@@ -1,4 +1,15 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { 
+  auth, 
+  isFirebaseConfigured, 
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword, 
+  signOut as firebaseSignOut, 
+  onAuthStateChanged,
+  updateProfile as firebaseUpdateProfile,
+  signInWithPopup,
+  googleProvider 
+} from '../services/firebase';
 
 const AuthContext = createContext(null);
 
@@ -32,11 +43,37 @@ export const DEMO_USERS = [
   }
 ];
 
+function formatFirebaseAuthError(err) {
+  const code = err.code || '';
+  switch (code) {
+    case 'auth/invalid-credential':
+    case 'auth/wrong-password':
+    case 'auth/user-not-found':
+      return new Error('Invalid email or password. Please verify your credentials.');
+    case 'auth/email-already-in-use':
+      return new Error('This email address is already in use. Please sign in instead.');
+    case 'auth/weak-password':
+      return new Error('Password must be at least 6 characters long.');
+    case 'auth/invalid-email':
+      return new Error('Please enter a valid email address.');
+    case 'auth/too-many-requests':
+      return new Error('Too many failed attempts. Please try again in a few moments.');
+    case 'auth/popup-closed-by-user':
+      return new Error('Google sign-in popup was closed before finishing.');
+    case 'auth/operation-not-allowed':
+      return new Error('Email/Password provider is not yet enabled in Firebase Console (Authentication > Sign-in method).');
+    default:
+      return new Error(err.message || 'Authentication failed. Please try again.');
+  }
+}
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
     const saved = localStorage.getItem('codetogether_user');
     return saved ? JSON.parse(saved) : DEMO_USERS[0];
   });
+
+  const [loading, setLoading] = useState(true);
 
   const [recentRooms, setRecentRooms] = useState(() => {
     const saved = localStorage.getItem('codetogether_recent_rooms');
@@ -70,23 +107,38 @@ export function AuthProvider({ children }) {
         lastActive: '2 hours ago',
         isOwner: false,
         filesCount: 2
-      },
-      {
-        id: 'room-cpp-engine',
-        name: 'High-Performance Graphics Math',
-        description: 'Vector and matrix calculations with SIMD optimization',
-        language: 'cpp',
-        collaboratorsCount: 4,
-        collaborators: [
-          { name: 'Alex Rivera', avatar: DEMO_USERS[0].avatar },
-          { name: 'Sarah Chen', avatar: DEMO_USERS[1].avatar }
-        ],
-        lastActive: 'Yesterday',
-        isOwner: false,
-        filesCount: 3
       }
     ];
   });
+
+  // Listen to Firebase Auth state changes
+  useEffect(() => {
+    if (!auth) {
+      setLoading(false);
+      return;
+    }
+
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        const appUser = {
+          id: firebaseUser.uid,
+          name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'Developer',
+          email: firebaseUser.email,
+          avatar: firebaseUser.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
+          role: 'Developer',
+          color: '#89b4fa',
+          isFirebase: true
+        };
+        setUser(appUser);
+      } else {
+        // If current user was a Firebase user and signed out, reset
+        setUser(prev => (prev?.isFirebase ? null : prev));
+      }
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -100,7 +152,29 @@ export function AuthProvider({ children }) {
     localStorage.setItem('codetogether_recent_rooms', JSON.stringify(recentRooms));
   }, [recentRooms]);
 
-  const login = (email, password) => {
+  // Firebase Email/Password Sign-In
+  const login = async (email, password) => {
+    if (auth && isFirebaseConfigured) {
+      try {
+        const userCred = await signInWithEmailAndPassword(auth, email, password);
+        const fbUser = userCred.user;
+        const appUser = {
+          id: fbUser.uid,
+          name: fbUser.displayName || fbUser.email?.split('@')[0] || 'Developer',
+          email: fbUser.email,
+          avatar: fbUser.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
+          role: 'Developer',
+          color: '#89b4fa',
+          isFirebase: true
+        };
+        setUser(appUser);
+        return appUser;
+      } catch (err) {
+        throw formatFirebaseAuthError(err);
+      }
+    }
+
+    // Demo fallback when offline or without Firebase config
     const existing = DEMO_USERS.find(u => u.email === email) || {
       id: `user-${Date.now()}`,
       name: email.split('@')[0],
@@ -113,11 +187,37 @@ export function AuthProvider({ children }) {
     return existing;
   };
 
-  const quickLoginAs = (demoUser) => {
-    setUser(demoUser);
-  };
+  // Firebase Email/Password Registration
+  const signup = async ({ name, email, password, role, avatar }) => {
+    if (auth && isFirebaseConfigured) {
+      try {
+        const userCred = await createUserWithEmailAndPassword(auth, email, password);
+        const fbUser = userCred.user;
 
-  const signup = ({ name, email, role, avatar }) => {
+        try {
+          await firebaseUpdateProfile(fbUser, {
+            displayName: name,
+            photoURL: avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80'
+          });
+        } catch (_) {}
+
+        const appUser = {
+          id: fbUser.uid,
+          name: name || fbUser.displayName || 'Developer',
+          email: fbUser.email,
+          role: role || 'Software Engineer',
+          avatar: avatar || fbUser.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
+          color: '#89b4fa',
+          isFirebase: true
+        };
+        setUser(appUser);
+        return appUser;
+      } catch (err) {
+        throw formatFirebaseAuthError(err);
+      }
+    }
+
+    // Fallback registration
     const newUser = {
       id: `user-${Date.now()}`,
       name,
@@ -131,7 +231,40 @@ export function AuthProvider({ children }) {
     return newUser;
   };
 
-  const logout = () => {
+  // 1-Click Google Sign-In
+  const loginWithGoogle = async () => {
+    if (!auth || !googleProvider) {
+      throw new Error('Google Sign-In is not configured.');
+    }
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const fbUser = result.user;
+      const appUser = {
+        id: fbUser.uid,
+        name: fbUser.displayName || fbUser.email?.split('@')[0] || 'Developer',
+        email: fbUser.email,
+        avatar: fbUser.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
+        role: 'Developer',
+        color: '#89b4fa',
+        isFirebase: true
+      };
+      setUser(appUser);
+      return appUser;
+    } catch (err) {
+      throw formatFirebaseAuthError(err);
+    }
+  };
+
+  const quickLoginAs = (demoUser) => {
+    setUser(demoUser);
+  };
+
+  const logout = async () => {
+    if (auth && isFirebaseConfigured) {
+      try {
+        await firebaseSignOut(auth);
+      } catch (_) {}
+    }
     setUser(null);
   };
 
@@ -149,7 +282,7 @@ export function AuthProvider({ children }) {
           language: roomData.language || 'javascript',
           description: roomData.description || 'Collaborative coding session',
           collaboratorsCount: roomData.collaboratorsCount || 1,
-          collaborators: roomData.collaborators || [{ name: user.name, avatar: user.avatar }],
+          collaborators: roomData.collaborators || [{ name: user?.name, avatar: user?.avatar }],
           lastActive: 'Just now',
           isOwner: roomData.isOwner ?? false,
           filesCount: roomData.filesCount || 1
@@ -159,24 +292,20 @@ export function AuthProvider({ children }) {
     });
   };
 
-  const removeRecentRoom = (roomId) => {
-    setRecentRooms(prev => prev.filter(r => r.id !== roomId));
-  };
-
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        login,
-        signup,
-        quickLoginAs,
-        logout,
-        updateProfile,
-        recentRooms,
-        recordRoomVisit,
-        removeRecentRoom
-      }}
-    >
+    <AuthContext.Provider value={{
+      user,
+      loading,
+      login,
+      signup,
+      loginWithGoogle,
+      quickLoginAs,
+      logout,
+      updateProfile,
+      recentRooms,
+      recordRoomVisit,
+      isFirebaseConfigured
+    }}>
       {children}
     </AuthContext.Provider>
   );

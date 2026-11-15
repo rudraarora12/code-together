@@ -3,6 +3,18 @@
  * Reads credentials from Vite environment variables (VITE_FIREBASE_*)
  */
 
+import { initializeApp, getApps, getApp } from 'firebase/app';
+import { 
+  getAuth, 
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword, 
+  signOut, 
+  onAuthStateChanged,
+  updateProfile,
+  signInWithPopup,
+  GoogleAuthProvider
+} from 'firebase/auth';
+
 const getEnv = (key) => {
   if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env[key]) {
     return import.meta.env[key];
@@ -30,4 +42,30 @@ export const isFirebaseConfigured = Boolean(
   firebaseConfig.projectId !== 'your_project_id_here'
 );
 
+// Initialize Firebase App & Authentication
+let app = null;
+let auth = null;
+let googleProvider = null;
+
+if (isFirebaseConfigured) {
+  try {
+    app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    googleProvider = new GoogleAuthProvider();
+  } catch (err) {
+    console.warn('[Firebase] Initialization warning:', err.message);
+  }
+}
+
+export { 
+  app, 
+  auth, 
+  googleProvider,
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword, 
+  signOut, 
+  onAuthStateChanged,
+  updateProfile,
+  signInWithPopup
+};
 export default firebaseConfig;
