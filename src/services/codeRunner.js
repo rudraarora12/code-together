@@ -1,10 +1,12 @@
+import { getBackendUrl } from './config';
+
 /**
  * Code Execution Service
  * Prepared for a secure backend sandbox (e.g., Docker container via Express API).
  * Includes robust fallback emulation for standalone frontend testing with realistic stdout, stderr, and timings.
  */
 
-export async function executeCode({ code, language, input = '', backendUrl = 'http://localhost:5001' }) {
+export async function executeCode({ code, language, input = '', backendUrl = getBackendUrl() }) {
   const startTime = performance.now();
 
   // Try backend runner first

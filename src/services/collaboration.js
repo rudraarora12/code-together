@@ -1,6 +1,6 @@
 import * as Y from 'yjs';
 import { io } from 'socket.io-client';
-import { getBackendUrl } from './config';
+import { getBackendUrl, getSocketUrl } from './config';
 
 export const COLLABORATOR_COLORS = [
   { hex: '#89b4fa', name: 'Sapphire Blue', bg: 'bg-[#89b4fa]/20', border: 'border-[#89b4fa]' },
@@ -21,6 +21,7 @@ export function getRandomColor(seed = 0) {
  */
 export function createCollaborationSession(roomId, user, options = {}) {
   const backendUrl = options.backendUrl || getBackendUrl();
+  const socketUrl = options.socketUrl || getSocketUrl();
   const userColor = user?.color || getRandomColor(Math.floor(Math.random() * COLLABORATOR_COLORS.length)).hex;
 
   // Multi-doc map: fileId -> { ydoc, yText, isSynced }
@@ -33,7 +34,7 @@ export function createCollaborationSession(roomId, user, options = {}) {
   let currentActiveFileId = options.initialFileId || null;
 
   // Connect Socket.IO
-  const socket = io(backendUrl, {
+  const socket = io(socketUrl, {
     query: { roomId, userId: user?.id, userName: user?.name },
     transports: ['polling', 'websocket'],
     timeout: 7000,

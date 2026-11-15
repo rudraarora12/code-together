@@ -19,6 +19,7 @@ dist-ssr/
 # Server storage and execution sandboxes
 server/sandboxes/
 server/storage/rooms/
+server/storage/rooms.json
 server/temp/
 
 # Editor directories and files

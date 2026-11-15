@@ -51,7 +51,14 @@ export function sanitizeRelativePath(relPath) {
 
 // Get the directory where project files are stored for a room
 export function getRoomProjectDir(roomId) {
-  const roomDir = path.join(STORAGE_ROOT, roomId, 'files');
+  if (!roomId || typeof roomId !== 'string') {
+    throw new Error('Invalid roomId provided');
+  }
+  const cleanRoomId = roomId.replace(/[^a-zA-Z0-9_-]/g, '');
+  if (!cleanRoomId) {
+    throw new Error('Invalid roomId format');
+  }
+  const roomDir = path.join(STORAGE_ROOT, cleanRoomId, 'files');
   if (!fs.existsSync(roomDir)) {
     fs.mkdirSync(roomDir, { recursive: true });
   }

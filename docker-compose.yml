@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  # 1. CodeTogether Backend & Real-time Collaboration Engine
+  codetogether-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: codetogether-backend
+    restart: unless-stopped
+    ports:
+      - "5001:5001"
+    environment:
+      - NODE_ENV=production
+      - PORT=5001
+      - MONGODB_URI=mongodb://mongo:27017/codetogether
+      - FRONTEND_URL=https://codetogether.vercel.app,http://localhost:5173
+      - SESSION_SECRET=production-secret-replace-me-12345
+    volumes:
+      - codetogether-storage:/app/server/storage
+      - codetogether-sandboxes:/app/server/sandboxes
+    depends_on:
+      - mongo
+
+  # 2. Local MongoDB Database (or replace MONGODB_URI with Atlas URI)
+  mongo:
+    image: mongo:7.0
+    container_name: codetogether-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+volumes:
+  codetogether-storage:
+  codetogether-sandboxes:
+  mongo-data:

@@ -1,4 +1,5 @@
 import { io } from 'socket.io-client';
+import { getSocketUrl } from './config';
 
 class SocketService {
   constructor() {
@@ -10,7 +11,7 @@ class SocketService {
   /**
    * Connect to a backend Socket.IO server
    */
-  connect(url = 'http://localhost:5001') {
+  connect(url = getSocketUrl()) {
     if (this.socket) return this.socket;
 
     try {

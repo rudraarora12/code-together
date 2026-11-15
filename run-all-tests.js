@@ -38,10 +38,11 @@ function assert(condition, message) {
 }
 
 try {
-  // 1. Health check
-  const health = await request('/health');
-  console.log('Health response:', health);
-  assert(health.status === 200 && health.data.status === 'ok', 'GET /health responds with 200 OK');
+  // 1. Health check & Diagnostics
+  const health = await request('/api/health');
+  console.log('Health response:', health.data);
+  assert(health.status === 200 && health.data.status === 'ok', 'GET /api/health responds with 200 OK');
+  assert(health.data.database && typeof health.data.database.connected === 'boolean', 'Database status and mode reported in health check');
 
   // 2. Upload an entire project folder
   const testProjectFiles = [
@@ -119,6 +120,20 @@ try {
   const zipBytes = new Uint8Array(zip.buffer);
   const hasZipHeader = zipBytes[0] === 0x50 && zipBytes[1] === 0x4B; // PK header
   assert(zip.status === 200 && hasZipHeader, 'GET /download generates valid full project ZIP archive');
+
+  // 8b. Defensive Security: Path traversal rejection
+  const traversalTest = await request(`/api/rooms/${roomId}/file-content?path=../../package.json`);
+  assert(traversalTest.status >= 400, 'Security: Path traversal attempts rejected with 4xx status');
+
+  // 8c. MongoDB Atlas Schema & Model validation
+  const { Room: RoomModel, ProjectFile: ProjectFileModel } = await import('./server/db.js');
+  const testRoomDoc = new RoomModel({
+    roomId: 'test-mongo-validation',
+    name: 'Atlas Test Room',
+    owner: { id: 'test-user', name: 'Tester' }
+  });
+  const validationError = testRoomDoc.validateSync();
+  assert(!validationError, 'MongoDB Atlas: Room schema compiled and validates data accurately');
 
   // 9. Isolated Project Run & Stop
   const runRes = await request(`/api/rooms/${roomId}/run`, {

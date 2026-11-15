@@ -1,13 +1,27 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
+import helmet from 'helmet';
 import * as Y from 'yjs';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import { execSync } from 'child_process';
 import { fileURLToPath } from 'url';
+
+import {
+  connectDatabase,
+  getDatabaseStatus,
+  isDatabaseConnected,
+  closeDatabase,
+  Room as RoomModel,
+  ProjectFile as ProjectFileModel,
+  ChatMessage as ChatMessageModel
+} from './db.js';
 
 import {
   storeProjectFiles,
@@ -37,15 +51,44 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const server = http.createServer(app);
 
+// Allowed origins for CORS (Vercel production domains, local dev, public tunnels)
+const allowedOrigins = process.env.FRONTEND_URL
+  ? process.env.FRONTEND_URL.split(',').map(s => s.trim().replace(/\/$/, ''))
+  : ['http://localhost:5173', 'http://localhost:5174', 'http://127.0.0.1:5173'];
+
+function isOriginAllowed(origin) {
+  if (!origin) return true;
+  if (process.env.NODE_ENV !== 'production') return true;
+  if (allowedOrigins.includes('*') || allowedOrigins.includes(origin)) return true;
+  if (/^https:\/\/[a-zA-Z0-9_-]+\.vercel\.app$/.test(origin)) return true;
+  if (/^https:\/\/[a-zA-Z0-9_-]+\.loca\.lt$/.test(origin)) return true;
+  return false;
+}
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    callback(null, isOriginAllowed(origin));
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+};
+
 const io = new Server(server, {
   cors: {
-    origin: '*',
+    origin: (origin, callback) => {
+      callback(null, isOriginAllowed(origin));
+    },
+    credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE']
   },
   maxHttpBufferSize: 1e8 // 100MB
 });
 
-app.use(cors());
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  contentSecurityPolicy: false // Required for Monaco editor web workers & application preview
+}));
+app.use(cors(corsOptions));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
@@ -78,6 +121,56 @@ function saveRoomsToDisk() {
     fs.writeFileSync(ROOMS_FILE, JSON.stringify(obj, null, 2), 'utf-8');
   } catch (e) {
     console.error('[Storage] Error saving rooms to disk:', e.message);
+  }
+}
+
+// Connect to MongoDB Atlas (if MONGODB_URI is provided in environment)
+connectDatabase().then(async (result) => {
+  if (result && result.connected) {
+    try {
+      const dbRooms = await RoomModel.find({}).lean();
+      dbRooms.forEach(r => {
+        if (!roomsStore.has(r.roomId)) {
+          roomsStore.set(r.roomId, { ...r, id: r.roomId });
+        }
+      });
+      console.log(`[Database] Synced ${dbRooms.length} rooms from MongoDB Atlas.`);
+    } catch (err) {
+      console.warn('[Database] Sync warning:', err.message);
+    }
+  }
+});
+
+async function persistRoomToDatabase(roomId, roomData, files = []) {
+  if (!isDatabaseConnected()) return;
+  try {
+    await RoomModel.findOneAndUpdate(
+      { roomId },
+      { ...roomData, roomId },
+      { upsert: true, new: true }
+    );
+    if (files.length > 0) {
+      const ops = files.map(f => ({
+        updateOne: {
+          filter: { roomId, path: f.path || f.name },
+          update: { 
+            $set: { 
+              roomId, 
+              path: f.path || f.name, 
+              name: f.name || path.basename(f.path || f.name),
+              content: typeof f.content === 'string' ? f.content : '',
+              size: f.size || (typeof f.content === 'string' ? f.content.length : 0),
+              isDirectory: !!f.isDirectory
+            } 
+          },
+          upsert: true
+        }
+      }));
+      await ProjectFileModel.bulkWrite(ops);
+    }
+    console.log(`[Database] Persisted room ${roomId} and ${files.length} files to MongoDB Atlas.`);
+  } catch (err) {
+    console.warn(`[Database] Error persisting room ${roomId} to MongoDB:`, err.message);
   }
 }
 
@@ -145,12 +238,14 @@ const roomChatHistory = new Map();
 // REST APIs
 // -------------------------------------------------------------
 
-// 1. Health check
-app.get('/health', (req, res) => {
+// 1. Health check & Diagnostics endpoint
+app.get(['/api/health', '/health'], (req, res) => {
   res.json({
     status: 'ok',
     uptime: process.uptime(),
+    database: getDatabaseStatus(),
     activeRooms: roomsStore.size,
+    environment: process.env.NODE_ENV || 'development',
     timestamp: new Date().toISOString()
   });
 });
@@ -241,6 +336,7 @@ app.post('/api/rooms/project', (req, res) => {
 
     roomsStore.set(roomId, room);
     saveRoomsToDisk();
+    persistRoomToDatabase(roomId, room, flatFiles);
 
     // Pre-initialize Y.Docs for uploaded files
     files.forEach(f => {
@@ -315,9 +411,26 @@ app.post('/api/rooms', (req, res) => {
 });
 
 // 3. Get Room Details, Project Tree, and Collaborators
-app.get('/api/rooms/:roomId', (req, res) => {
+app.get('/api/rooms/:roomId', async (req, res) => {
   const { roomId } = req.params;
-  const room = roomsStore.get(roomId);
+  let room = roomsStore.get(roomId);
+
+  if (!room && isDatabaseConnected()) {
+    try {
+      const dbRoom = await RoomModel.findOne({ roomId }).lean();
+      if (dbRoom) {
+        room = { ...dbRoom, id: dbRoom.roomId };
+        roomsStore.set(roomId, room);
+        // Restore files from MongoDB if not currently on disk
+        const dbFiles = await ProjectFileModel.find({ roomId }).lean();
+        if (dbFiles.length > 0) {
+          storeProjectFiles(roomId, dbFiles);
+        }
+      }
+    } catch (e) {
+      console.warn(`[Database] Error restoring room ${roomId}:`, e.message);
+    }
+  }
 
   if (!room) {
     return res.status(404).json({ error: 'Room not found or expired.' });
@@ -586,7 +699,7 @@ io.on('connection', (socket) => {
   let currentFileId = null;
 
   // 1. Client joins project room
-  socket.on('room:join', ({ roomId, user, activeFileId }) => {
+  socket.on('room:join', async ({ roomId, user, activeFileId }) => {
     currentRoomId = roomId;
     currentUser = {
       id: user?.id || socket.id,
@@ -605,6 +718,19 @@ io.on('connection', (socket) => {
       roomParticipants.set(roomId, new Map());
     }
     roomParticipants.get(roomId).set(socket.id, currentUser);
+
+    if (!roomChatHistory.has(roomId)) {
+      if (isDatabaseConnected()) {
+        try {
+          const dbMsgs = await ChatMessageModel.find({ roomId }).sort({ createdAt: 1 }).limit(100).lean();
+          roomChatHistory.set(roomId, dbMsgs);
+        } catch (_) {
+          roomChatHistory.set(roomId, []);
+        }
+      } else {
+        roomChatHistory.set(roomId, []);
+      }
+    }
 
     const participants = Array.from(roomParticipants.get(roomId).values());
     const runStatus = getProjectExecutionStatus(roomId);
@@ -713,6 +839,19 @@ io.on('connection', (socket) => {
     if (history.length > 200) history.shift();
 
     io.to(currentRoomId).emit('chat:message', message);
+
+    if (isDatabaseConnected()) {
+      ChatMessageModel.create({
+        roomId: currentRoomId,
+        id: message.id || `msg-${Date.now()}`,
+        senderId: message.senderId || currentUser?.id || 'anon',
+        senderName: message.senderName || currentUser?.name || 'Developer',
+        avatar: message.avatar || currentUser?.avatar,
+        color: message.color || currentUser?.color,
+        text: message.text || '',
+        timestamp: message.timestamp || new Date().toLocaleTimeString()
+      }).catch(err => console.warn('[MongoDB] Chat save warning:', err.message));
+    }
   });
 
   // 6. Live Typing Indicator
@@ -818,6 +957,37 @@ server.on('error', (err) => {
     console.error('[Server Error]', err);
   }
 });
+
+// Production error handler middleware (prevents leaking internal stack traces)
+app.use((err, req, res, next) => {
+  console.error('[Unhandled Express Error]', err);
+  const status = err.status || 500;
+  res.status(status).json({
+    error: process.env.NODE_ENV === 'production' 
+      ? 'An unexpected internal error occurred.' 
+      : (err.message || 'Internal server error')
+  });
+});
+
+async function gracefulShutdown(signal) {
+  console.log(`[Server] Received ${signal}. Starting graceful shutdown...`);
+  server.close(async () => {
+    console.log('[Server] HTTP and Socket server closed cleanly.');
+    try {
+      await closeDatabase();
+      console.log('[Server] Database connections closed.');
+    } catch (_) {}
+    process.exit(0);
+  });
+
+  setTimeout(() => {
+    console.error('[Server] Forced shutdown due to lingering connections.');
+    process.exit(1);
+  }, 8000).unref();
+}
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 startListening();
 

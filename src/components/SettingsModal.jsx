@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { useRoom } from '../context/RoomContext';
 import { showToast } from './Toast';
+import { getBackendUrl } from '../services/config';
 
 export default function SettingsModal({ isOpen, onClose }) {
   const { 
@@ -21,7 +22,7 @@ export default function SettingsModal({ isOpen, onClose }) {
   } = useRoom();
 
   const [activeTab, setActiveTab] = useState('editor'); // 'editor' | 'sandbox' | 'shortcuts'
-  const [sandboxEndpoint, setSandboxEndpoint] = useState('http://localhost:5001');
+  const [sandboxEndpoint, setSandboxEndpoint] = useState(() => getBackendUrl());
   const [isSaved, setIsSaved] = useState(false);
 
   const handleSaveSandbox = (e) => {
